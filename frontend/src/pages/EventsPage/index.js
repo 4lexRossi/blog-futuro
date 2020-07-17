@@ -5,10 +5,9 @@ import cameraIcon from '../../assets/camera.png';
 import "./events.css";
 
 export default function EventsPage({ history }) {
-  
+
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
+  const [description, setDescription] = useState('');  
   const [thumbnail, setThumbnail] = useState(null);
   const [sport, setSport] = useState('Evento');
   const [date, setDate] = useState('');
@@ -17,13 +16,13 @@ export default function EventsPage({ history }) {
   const [dropdowOpen, setOpen] = useState(false);
   const user = localStorage.getItem('user');
 
-  useEffect(() =>{
-    if(!user) history.push('/login')
-  },[])
-  
+  useEffect(() => {
+    if (!user) history.push('/login')
+  }, [])
+
   const toggle = () => setOpen(!dropdowOpen);
-  
-  
+
+
   const preview = useMemo(() => {
     return thumbnail ? URL.createObjectURL(thumbnail) : null;
   }, [thumbnail])
@@ -35,15 +34,13 @@ export default function EventsPage({ history }) {
 
     eventData.append("thumbnail", thumbnail)
     eventData.append("sport", sport)
-    eventData.append("title", title)
-    eventData.append("price", price)
+    eventData.append("title", title)    
     eventData.append("description", description)
     eventData.append("date", date)
 
     try {
       if (title !== "" &&
-        description !== "" &&
-        price !== "" &&
+        description !== "" &&        
         sport !== "Evento" &&
         date !== "" &&
         thumbnail !== null
@@ -53,12 +50,12 @@ export default function EventsPage({ history }) {
         setTimeout(() => {
           setSuccess(false)
           history.push('/')
-        }, 2000)   
+        }, 2000)
       } else {
         setError(true)
         setTimeout(() => {
           setError(false)
-        }, 2000)        
+        }, 2000)
       }
     } catch (error) {
       Promise.reject(error);
@@ -70,58 +67,55 @@ export default function EventsPage({ history }) {
 
   return (
     <Container>
-      <h1>Registre seu Evento</h1>
+      <h1>Sua Postagem do futuro</h1>
       <Form onSubmit={submitHandler}>
         <div className="input-group">
-          <FormGroup>          
-              <Label>Envie a Imagem</Label>
-              <Label id='thumbnail' style={{ backgroundImage: `url(${preview})` }} className={thumbnail ? 'has-thumbnail' : ''}>
-                <Input type="file" onChange={evt => setThumbnail(evt.target.files[0])} />
-                <img src={cameraIcon} style={{ maxWidth: "50px" }} alt="upload icon image" />
-              </Label>
-            </FormGroup>            
-            <FormGroup>
-              <Label>Nome do evento: </Label>
-              <Input id="title" type="text" value={title} placeholder={'Nome do Evento'} onChange={(evt) => setTitle(evt.target.value)} />
-            </FormGroup>
-            <FormGroup>
-              <Label>Descrição do evento: </Label>
-              <Input id="description" type="text" value={description} placeholder={'Descrição do Evento'} onChange={(evt) => setDescription(evt.target.value)} />
-            </FormGroup>
-            <FormGroup>
-              <Label>Valor do evento: </Label>
-              <Input id="price" type="text" value={price} placeholder={'Valor R$:0.00'} onChange={(evt) => setPrice(evt.target.value)} />
-            </FormGroup>
-            <FormGroup>
-              <Label>Data do evento: </Label>
-              <Input id="date" type="date" value={date} placeholder={'00/00/0000'} onChange={(evt) => setDate(evt.target.value)} />
-            </FormGroup>
-            <FormGroup>              
-              <ButtonDropdown isOpen={dropdowOpen} toggle={toggle}>
-                <Button id="caret" value={sport} disabled>{sport}</Button>
-                <DropdownToggle caret />
-                <DropdownMenu>                  
-                  <DropdownItem onClick={() => sportEventHandler('Esportes')}>Esportes</DropdownItem>
-                  <DropdownItem onClick={() => sportEventHandler('Social')}>Social</DropdownItem>                  
-                  <DropdownItem onClick={() => sportEventHandler('Religioso')}>Religioso</DropdownItem>
-                </DropdownMenu>
-              </ButtonDropdown>
-            </FormGroup>
+          <FormGroup>
+            <Label>Envie a Imagem</Label>
+            <Label id='thumbnail' style={{ backgroundImage: `url(${preview})` }} className={thumbnail ? 'has-thumbnail' : ''}>
+              <Input type="file" onChange={evt => setThumbnail(evt.target.files[0])} />
+              <img src={cameraIcon} style={{ maxWidth: "50px" }} alt="upload icon image" />
+            </Label>
+          </FormGroup>
+          <FormGroup>
+            <Label>Titulo da Postagem: </Label>
+            <Input id="title" type="text" value={title} placeholder={'Titulo da Postagem'} onChange={(evt) => setTitle(evt.target.value)} />
+          </FormGroup>
+          <FormGroup>
+            <Label className="description-area">Descrição da postagem: </Label>
+            <textarea id="description" className="text-area-description" type="text" value={description} placeholder={'Escreva sua Postagem do futuro'} onChange={(evt) => setDescription(evt.target.value)} />
+          </FormGroup>          
+          <FormGroup>
+            <Label>Data da postagem: </Label>
+            <Input id="date" type="date" value={date} placeholder={'00/00/0000'} onChange={(evt) => setDate(evt.target.value)} />
+          </FormGroup>
+          <FormGroup>
+            <ButtonDropdown isOpen={dropdowOpen} toggle={toggle}>
+              <Button id="caret" value={sport} disabled>{sport}</Button>
+              <DropdownToggle caret />
+              <DropdownMenu>
+                <DropdownItem onClick={() => sportEventHandler('Profissional')}>Profissional</DropdownItem>
+                <DropdownItem onClick={() => sportEventHandler('Social')}>Social</DropdownItem>
+                <DropdownItem onClick={() => sportEventHandler('Fisico')}>Fisico</DropdownItem>
+              </DropdownMenu>
+            </ButtonDropdown>
+          </FormGroup>
         </div>
         <FormGroup>
           <Button type="submit" className="submit-btn">
-            Criar Evento</Button>
+            Buscar Postagem do Futuro</Button>
         </FormGroup>
         <FormGroup>
           <Button className="secondary-btn" onClick={() => history.push("/")}>
             Cancelar</Button>
         </FormGroup>
       </Form>
+        
       {error ? (
         <Alert className="event-validation" color="danger">Está faltando dados obrigatórios</Alert>
       ) : ""}
       {success ? (
-        <Alert className="event-validation" color="success">Evento criado com sucesso</Alert>
+        <Alert className="event-validation" color="success">Postagem recebida do futuro</Alert>
       ) : ""}
     </Container>
   )

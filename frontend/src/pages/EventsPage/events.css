@@ -21,3 +21,10 @@ Label#thumbnail.has-thumbnail img {
 .container > .event-validation {
   margin-top: 12px;
 }
+.description-area{
+  display: flex;
+  flex-direction: column;
+}
+.text-area-description{
+  width: 250px;
+}

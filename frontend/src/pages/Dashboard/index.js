@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import api from '../../services/api';
 import moment from 'moment';
-import { Button, ButtonGroup, Alert, Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
+import { Button, ButtonGroup, Alert, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, Pagination, PaginationItem, PaginationLink } from 'reactstrap';
 import socketio from 'socket.io-client';
 
 import './dashboard.css'
@@ -14,7 +14,7 @@ export default function Dashboard({ history }) {
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [messageHandler, setMessageHandler] = useState('');
-  const [eventRequests, setEventsRequests] = useState([]);
+  const [eventsRequests, setEventsRequests] = useState([]);
   const [dropDownOpen, setDropDownOpen] = useState(false);
   const [eventRequestMessage, setEventRequestMessage] = useState('')
   const [eventRequestSuccess, setEventRequestSuccess] = useState(false)
@@ -33,8 +33,8 @@ export default function Dashboard({ history }) {
   );
 
   useEffect(() => {
-    socket.on('registration_request', data => (setEventsRequests([...eventRequests, data])))
-  }, [eventRequests, socket])
+    socket.on('registration_request', data => (setEventsRequests([...eventsRequests, data])))
+  }, [eventsRequests, socket])
 
   const filterHandler = (query) => {
     setRSelected(query)
@@ -53,8 +53,8 @@ export default function Dashboard({ history }) {
 
   const getEvents = async (filter) => {
     try {
-      const url = filter ? `/dashboard/${filter}` : '/dashboard'
-      const response = await api.get(url, { headers: { user: user } })
+      const url = filter ? `/dashboard/${filter}` : '/dashboard';
+      const response = await api.get(url, { headers: { user } })
 
       setEvents(response.data.events)
 
@@ -65,7 +65,7 @@ export default function Dashboard({ history }) {
   };
   const deleteEventHandler = async (eventId) => {
     try {
-      await api.delete(`/event/${eventId}`, { headers: { user: user } });
+      await api.delete(`/event/${eventId}`, { headers: { user } });
       setSuccess(true)
       setMessageHandler('Evento deletado com sucesso!')
       setTimeout(() => {
@@ -92,7 +92,7 @@ export default function Dashboard({ history }) {
       await api.post(`/registration/${event.id}`, {}, { headers: { user } })
 
       setSuccess(true)
-      setMessageHandler(`Inscrito no evento ${event.title} com sucesso!`)
+      setMessageHandler(`Coment na postagem ${event.title} com sucesso!`)
       setTimeout(() => {
         setSuccess(false)
         filterHandler(null)
@@ -101,7 +101,7 @@ export default function Dashboard({ history }) {
 
     } catch (error) {
       setError(true)
-      setMessageHandler(`Inscrição no evento ${event.title} não foi bem sucedida`)
+      setMessageHandler(`Coment na postagem ${event.title} não foi bem sucedida`)
       setTimeout(() => {
         setError(false)
         setMessageHandler('')
@@ -113,7 +113,7 @@ export default function Dashboard({ history }) {
       await api.post(`/registration/${eventId}/approvals`, {}, { headers: { user } })
 
       setEventRequestSuccess(true)
-      setEventRequestMessage('Inscrição no evento aprovada com sucesso!')
+      setEventRequestMessage('Coment na postagem aprovada com sucesso!')
       removeNotificationFromDashboard(eventId)
       setTimeout(() => {
         setEventRequestSuccess(false)
@@ -129,7 +129,7 @@ export default function Dashboard({ history }) {
       await api.post(`/registration/${eventId}/rejections`, {}, { headers: { user } })
 
       setEventRequestSuccess(true)
-      setEventRequestMessage('Pedido de inscrição no evento rejeitado com sucesso!')
+      setEventRequestMessage('Coment na postagem rejeitado com sucesso!')
       removeNotificationFromDashboard(eventId)
       setTimeout(() => {
         setEventRequestSuccess(false)
@@ -142,19 +142,20 @@ export default function Dashboard({ history }) {
   }
 
   const removeNotificationFromDashboard = (eventId) => {
-    const newEvents = eventRequests.filter ((event) => event._id !== eventId)
+    const newEvents = eventsRequests.filter ((event) => event._id !== eventId)
     setEventsRequests(newEvents);
   }
 
   return (
     <>
       <ul className="notifications">
-        {eventRequests.map(request => {
+        {eventsRequests.map(request => {
           return (
             <li key={request._id}>
               <div>
-                <strong>{request.user.email}</strong> está pedindo para se registrar em seu evento
-                <strong>{request.event.title}</strong>
+                <strong>{request.user.email}</strong> está pedindo para comentar em sua postagem
+                <strong> {request.event.title} </strong>
+                <span>Comentário: {request.event.description}</span>
               </div>
               <ButtonGroup>
                 <Button color="primary" onClick={() => acceptEventHandler(request._id)}>Aceitar</Button>
@@ -173,9 +174,9 @@ export default function Dashboard({ history }) {
           <DropdownMenu>
             <DropdownItem onClick={() => filterHandler(null)} active={rSelected === null}>Todos os Eventos</DropdownItem>
             <DropdownItem onClick={myEventsHandler} active={rSelected === 'myevents'}>Meus Eventos</DropdownItem>
-            <DropdownItem onClick={() => filterHandler('Esportes')} active={rSelected === 'Esportes'}>Esportes</DropdownItem>
+            <DropdownItem onClick={() => filterHandler('Profissional')} active={rSelected === 'Esportes'}>Profissional</DropdownItem>
             <DropdownItem onClick={() => filterHandler('Social')} active={rSelected === 'Social'}>Social</DropdownItem>
-            <DropdownItem onClick={() => filterHandler('Religioso')} active={rSelected === 'Religioso'}>Religioso</DropdownItem>
+            <DropdownItem onClick={() => filterHandler('Fisico')} active={rSelected === 'Religioso'}>Fisico</DropdownItem>
           </DropdownMenu>
         </Dropdown>
       </div>
@@ -185,14 +186,42 @@ export default function Dashboard({ history }) {
             <header style={{ backgroundImage: `url(${event.thumbnail_url})` }}>
               {event.user === user_id ? <div><Button color="danger" size="sm" onClick={() => deleteEventHandler(event._id)}>Delete</Button></div> : ""}
             </header>
-            <strong>{event.title}</strong>
-            <span>Data: {moment(event.date).format('DD/MM/YYYY')}</span>
-            <span>Valor R$: {parseFloat(event.price).toFixed(2)}</span>
-            <span>Descrição: {event.description}</span>
-            <Button color="primary" onClick={() => registrationRequestHandler(event)}>Se inscrever no evento</Button>
+            <span>{event.title}</span>
+            <strong className="post"> {event.description}</strong>
+            <span>Data: {moment(event.date).format('DD/MM/YYYY')}</span>            
+            <Button color="primary" onClick={() => registrationRequestHandler(event)}>Pedir para comentar na postagem</Button>
           </li>
         ))}
       </ul>
+      <Pagination size="sm" aria-label="Posts">
+          <PaginationItem>
+            <PaginationLink first href="#" />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink previous href="#" />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#">
+              1
+          </PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#">
+              2
+          </PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#">
+              3
+          </PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink next href="#" />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink last href="#" />
+          </PaginationItem>
+        </Pagination>
       {error ? (
         <Alert className="event-validation" color="danger">{messageHandler}</Alert>
       ) : ""}
