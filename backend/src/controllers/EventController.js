@@ -8,7 +8,7 @@ module.exports = {
             if (err) {
                 res.statusCode(401);
             } else {
-                const { title, description, price, sport, date } = req.body;
+                const { title, description, sport, date } = req.body;
                 const { location } = req.file;
 
                 const user = await User.findById(authData.user._id)
@@ -21,8 +21,7 @@ module.exports = {
                     const event = await Event.create({
                         title,
                         description,
-                        sport,
-                        price: parseFloat(price),
+                        sport,                        
                         user: authData.user._id,
                         thumbnail: location,
                         date

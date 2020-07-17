@@ -22,8 +22,7 @@ module.exports = {
           .execPopulate();
 
           registration.owner = registration.event.user
-          registration.eventTitle = registration.event.title
-          registration.eventPrice = registration.event.price
+          registration.eventTitle = registration.event.title          
           registration.eventDate = registration.event.date
           registration.userEmail = registration.user.email
           registration.save()
